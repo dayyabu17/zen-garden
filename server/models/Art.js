@@ -1,15 +1,30 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
-const CoordSchema = new Schema({
-  x: { type: Number, required: true },
-  y: { type: Number, required: true },
-  color: { type: String }
+const PathSchema = new Schema({
+  points: [
+    {
+      x: { type: Number, required: true },
+      y: { type: Number, required: true }
+    }
+  ],
+  color: { type: String, required: true },
+  brushSize: { type: Number, required: true }
 }, { _id: false });
 
 const ArtSchema = new Schema({
-  name: { type: String, required: true },
-  data: { type: [CoordSchema], default: [] }
-}, { timestamps: true });
+  title: { 
+    type: String, 
+    default: 'Untitled Flow' 
+  },
+  paths: {
+    type: [PathSchema],
+    default: []
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
 
-module.exports = mongoose.model('Art', ArtSchema);
+export default mongoose.model('Art', ArtSchema);
