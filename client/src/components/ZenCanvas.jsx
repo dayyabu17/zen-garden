@@ -1,114 +1,23 @@
-import { useRef, useState } from 'react';
 import Sketch from 'react-p5';
-import { saveArtwork } from '../services/artService.js';
+import { useDraw } from '../hooks/useDraw.js';
+import { COLORS, MIN_BRUSH_SIZE, MAX_BRUSH_SIZE } from '../constants/canvas.js';
 import { Save, Trash2 } from 'lucide-react';
 
 const ZenCanvas = () => {
-  const [paths, setPaths] = useState([]);
-  const [currentPath, setCurrentPath] = useState([]);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [currentColor, setCurrentColor] = useState('#4ECDC4');
-  const [brushSize, setBrushSize] = useState(5);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const colors = ['#4ECDC4', '#FF6B6B', '#95E1D3', '#F38181', '#AA96DA', '#FCBAD3'];
-
-  // p5.js setup
-  const setup = (p5, canvasParentRef) => {
-    p5.createCanvas(800, 600).parent(canvasParentRef);
-    p5.background(20, 20, 30);
-  };
-
-  // p5.js draw loop
-  const draw = (p5) => {
-    p5.background(20, 20, 30);
-
-    // Draw all saved paths
-    paths.forEach((path) => {
-      p5.stroke(path.color);
-      p5.strokeWeight(path.brushSize);
-      p5.noFill();
-      
-      p5.beginShape();
-      path.points.forEach((point) => {
-        p5.vertex(point.x, point.y);
-      });
-      p5.endShape();
-    });
-
-    // Draw current path being created
-    if (currentPath.length > 0) {
-      p5.stroke(currentColor);
-      p5.strokeWeight(brushSize);
-      p5.noFill();
-      
-      p5.beginShape();
-      currentPath.forEach((point) => {
-        p5.vertex(point.x, point.y);
-      });
-      p5.endShape();
-    }
-  };
-
-  // Mouse pressed handler
-  const mousePressed = (p5) => {
-    if (p5.mouseX >= 0 && p5.mouseX <= p5.width && p5.mouseY >= 0 && p5.mouseY <= p5.height) {
-      setIsDrawing(true);
-      setCurrentPath([{ x: p5.mouseX, y: p5.mouseY }]);
-    }
-  };
-
-  // Mouse dragged handler
-  const mouseDragged = (p5) => {
-    if (isDrawing && p5.mouseX >= 0 && p5.mouseX <= p5.width && p5.mouseY >= 0 && p5.mouseY <= p5.height) {
-      setCurrentPath((prev) => [...prev, { x: p5.mouseX, y: p5.mouseY }]);
-    }
-  };
-
-  // Mouse released handler
-  const mouseReleased = () => {
-    if (isDrawing && currentPath.length > 0) {
-      setPaths((prev) => [
-        ...prev,
-        {
-          points: currentPath,
-          color: currentColor,
-          brushSize: brushSize,
-        },
-      ]);
-      setCurrentPath([]);
-      setIsDrawing(false);
-    }
-  };
-
-  // Clear canvas
-  const handleClear = () => {
-    setPaths([]);
-    setCurrentPath([]);
-  };
-
-  // Save artwork
-  const handleSave = async () => {
-    if (paths.length === 0) {
-      alert('Create some art first!');
-      return;
-    }
-
-    try {
-      setIsSaving(true);
-      const artworkData = {
-        title: `Flow ${new Date().toLocaleString()}`,
-        paths: paths,
-      };
-      
-      await saveArtwork(artworkData);
-      alert('✨ Artwork saved successfully!');
-    } catch (error) {
-      alert(`Failed to save: ${error.message}`);
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  const {
+    currentColor,
+    brushSize,
+    isSaving,
+    setCurrentColor,
+    setBrushSize,
+    setup,
+    draw,
+    mousePressed,
+    mouseDragged,
+    mouseReleased,
+    handleClear,
+    handleSave,
+  } = useDraw();
 
   return (
     <div className="flex flex-col items-center gap-6 p-8">
@@ -129,7 +38,7 @@ const ZenCanvas = () => {
         <div className="mb-6">
           <label className="text-sm font-medium text-gray-300 mb-3 block">Color</label>
           <div className="flex gap-3">
-            {colors.map((color) => (
+            {COLORS.map((color) => (
               <button
                 key={color}
                 onClick={() => setCurrentColor(color)}
@@ -150,8 +59,8 @@ const ZenCanvas = () => {
           </label>
           <input
             type="range"
-            min="1"
-            max="20"
+            min={MIN_BRUSH_SIZE}
+            max={MAX_BRUSH_SIZE}
             value={brushSize}
             onChange={(e) => setBrushSize(Number(e.target.value))}
             className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-cyan-400"
