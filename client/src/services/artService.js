@@ -26,3 +26,17 @@ export const saveArtwork = async (data) => {
     throw new Error(error.response?.data?.message || 'Failed to save artwork');
   }
 };
+
+/**
+ * Delete an artwork from the database
+ * @param {string} id - Artwork ID to delete
+ * @returns {Promise<Object>} Response data
+ */
+export const deleteArtwork = async (id) => {
+  try {
+    const response = await axiosInstance.delete(`/art/${id}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to delete artwork');
+  }
+};

@@ -1,10 +1,12 @@
 import Sketch from 'react-p5';
+import { Link } from 'react-router-dom';
 import { useDraw } from '../hooks/useDraw.js';
 import { COLORS, MIN_BRUSH_SIZE, MAX_BRUSH_SIZE } from '../constants/canvas.js';
-import { Save, Trash2 } from 'lucide-react';
+import { Save, Trash2, Image } from 'lucide-react';
 
 const ZenCanvas = () => {
   const {
+    paths,
     currentColor,
     brushSize,
     isSaving,
@@ -85,6 +87,14 @@ const ZenCanvas = () => {
             <Trash2 size={20} />
             Clear
           </button>
+
+          <Link
+            to="/gallery"
+            className="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 hover:shadow-lg hover:scale-105"
+          >
+            <Image size={20} />
+            View Gallery
+          </Link>
         </div>
       </div>
     </div>
