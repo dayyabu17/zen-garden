@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useGallery } from '../hooks/useGallery';
 import ArtCard from '../components/ArtCard';
 import { ArrowLeft, Palette } from 'lucide-react';
@@ -8,19 +9,19 @@ const Gallery = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900">
-      {/* Header */}
-      <header className="py-8 px-6 border-b border-white/10 backdrop-blur-sm sticky top-0 z-10 bg-gray-900/50">
-        <div className="max-w-7xl mx-auto">
+      {/* Header - Scroll-like styling */}
+      <header className="py-12 px-6 border-b border-amber-500/20 backdrop-blur-sm sticky top-0 z-10 bg-gray-900/50">
+        <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-                Gallery
+              <h1 className="text-5xl font-light text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-100 tracking-widest" style={{ fontFamily: 'serif' }}>
+                蔵
               </h1>
-              <p className="text-gray-400 mt-2">Your collection of zen flows</p>
+              <p className="text-amber-200/60 mt-2 text-sm tracking-widest">Collection of Zen Flows</p>
             </div>
             <Link
               to="/"
-              className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 hover:shadow-lg hover:scale-105"
+              className="flex items-center gap-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-semibold py-3 px-6 rounded-sm transition-all duration-200 hover:shadow-lg border border-amber-500/30"
             >
               <ArrowLeft size={20} />
               Back to Canvas
@@ -65,11 +66,23 @@ const Gallery = () => {
           </div>
         )}
 
-        {/* Gallery Grid */}
+        {/* Gallery Grid - Kakemono (Hanging Scroll) Layout */}
         {!isLoading && !error && artworks.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {artworks.map((artwork) => (
-              <ArtCard key={artwork._id} artwork={artwork} onDelete={handleDelete} />
+          <div className="flex flex-wrap justify-center gap-8 py-12">
+            {artworks.map((artwork, index) => (
+              <motion.div
+                key={artwork._id}
+                initial={{ scaleY: 0, opacity: 0 }}
+                animate={{ scaleY: 1, opacity: 1 }}
+                transition={{
+                  delay: index * 0.1,
+                  duration: 0.6,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                style={{ originY: 0 }}
+              >
+                <ArtCard artwork={artwork} onDelete={handleDelete} />
+              </motion.div>
             ))}
           </div>
         )}
