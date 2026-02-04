@@ -4,6 +4,63 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Noto Serif JP for traditional Japanese aesthetic */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500;600;700&display=swap');
+
 html, body, #root {
   height: 100%;
 }
+
+/* Global Typography - Zen Garden Theme */
+body {
+  font-family: 'Noto Serif JP', 'Noto Serif', serif;
+  background-color: #1a1a1a;
+  color: #f2f0e9;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Noto Serif JP', 'Noto Serif', serif;
+  font-weight: 300;
+  letter-spacing: 0.05em;
+}
+
+h1 {
+  font-size: 3.5rem;
+  letter-spacing: 0.15em;
+}
+
+h2 {
+  font-size: 2.5rem;
+  letter-spacing: 0.1em;
+}
+
+h3 {
+  font-size: 1.75rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+}
+
+/* Subtle text selections */
+::selection {
+  background-color: #af964b;
+  color: #1a1a1a;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #af964b;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c9ad70;
+}
+
