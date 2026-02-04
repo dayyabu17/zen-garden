@@ -1,181 +1,111 @@
-import { useState } from 'react';
+import { useRef, useEffect } from 'react';
 import Sketch from 'react-p5';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useDraw } from '../hooks/useDraw.js';
-import { COLORS, MIN_BRUSH_SIZE, MAX_BRUSH_SIZE } from '../constants/canvas.js';
-import WashiDock from './WashiDock.jsx';
 
-const ZenCanvas = () => {
-  const {
-    paths,
-    currentColor,
-    brushSize,
-    isSaving,
-    smoothness,
-    opacity,
-    setCurrentColor,
-    setBrushSize,
-    setSmoothness,
-    setOpacity,
-    setup,
-    draw,
-    windowResized,
-    mousePressed,
-    mouseDragged,
-    mouseReleased,
-    handleClear,
-    handleSave,
-  } = useDraw();
+/**
+ * ZenCanvas Component - Handles p5.js canvas rendering within flex container
+ * Properly sized to fill parent with working mouse interactions
+ */
+const ZenCanvas = ({ setup, draw, windowResized, mousePressed, mouseDragged, mouseReleased }) => {
+  const canvasContainerRef = useRef(null);
+  const p5InstanceRef = useRef(null);
 
-  const [showSettings, setShowSettings] = useState(false);
-
-  const handleExport = () => {
-    alert('📥 Downloading your zen flow as PNG...');
+  // Wrapped setup to use proper parent reference
+  const wrappedSetup = (p5, canvasParentRef) => {
+    p5InstanceRef.current = p5;
+    
+    // Get actual dimensions from the container
+    const parent = canvasParentRef;
+    const width = parent.clientWidth || 800;
+    const height = parent.clientHeight || 600;
+    
+    // Create canvas with proper dimensions
+    const canvas = p5.createCanvas(width, height).parent(canvasParentRef);
+    
+    // Ensure canvas fills container and is interactive
+    canvas.elt.style.display = 'block';
+    canvas.elt.style.width = '100%';
+    canvas.elt.style.height = '100%';
+    canvas.elt.style.touchAction = 'none'; // Enable touch drawing
+    canvas.elt.style.cursor = 'crosshair'; // Drawing cursor
+    
+    // Call original setup if provided
+    if (setup) {
+      setup(p5, canvasParentRef);
+    }
   };
 
+  // Wrapped windowResized to use parent dimensions
+  const wrappedWindowResized = (p5) => {
+    if (p5 && p5.canvas && p5.canvas.parentElement) {
+      const parent = p5.canvas.parentElement;
+      const width = parent.clientWidth;
+      const height = parent.clientHeight;
+      
+      if (width > 0 && height > 0) {
+        p5.resizeCanvas(width, height);
+        
+        // Call original windowResized if provided
+        if (windowResized) {
+          windowResized(p5);
+        }
+      }
+    }
+  };
+
+  // Handle resize observer for flex container changes
+  useEffect(() => {
+    if (!canvasContainerRef.current) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      // Trigger a small delay to allow the p5 instance to be ready
+      setTimeout(() => {
+        const p5 = p5InstanceRef.current;
+        if (p5 && p5.canvas && canvasContainerRef.current) {
+          const parent = canvasContainerRef.current;
+          const width = parent.clientWidth;
+          const height = parent.clientHeight;
+          
+          if (width > 0 && height > 0 && (p5.width !== width || p5.height !== height)) {
+            p5.resizeCanvas(width, height);
+            if (windowResized) {
+              windowResized(p5);
+            }
+          }
+        }
+      }, 100);
+    });
+
+    resizeObserver.observe(canvasContainerRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [windowResized]);
+
   return (
-    <div className="flex flex-col items-center gap-4 md:gap-8 p-4 md:p-8 pb-32 md:pb-24 min-h-screen">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-2 md:mb-4"
-      >
-        <h1 className="text-4xl md:text-5xl font-light text-[#f2f0e9] tracking-widest mb-1 md:mb-2" style={{ fontFamily: "'Noto Serif JP', serif" }}>
-          墨庭
-        </h1>
-        <p className="text-[#af964b] text-xs md:text-sm tracking-widest font-light">Sumi-e Canvas</p>
-      </motion.div>
-
-      {/* Canvas Container - Responsive */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6 }}
-        className="relative shadow-2xl border-2 border-[#af964b]/30 bg-[#1a1a1a] w-full max-w-4xl"
-      >
-        <Sketch
-          setup={setup}
-          draw={draw}
-          windowResized={windowResized}
-          mousePressed={mousePressed}
-          mouseDragged={mouseDragged}
-          mouseReleased={mouseReleased}
-        />
-      </motion.div>
-
-      {/* Color Palette - Responsive */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="mt-4 md:mt-8"
-      >
-        <p className="text-[#af964b] text-xs tracking-widest mb-3 md:mb-4 text-center">色 • Colors</p>
-        <div className="flex gap-3 md:gap-4 flex-wrap justify-center">
-          {COLORS.map((color) => (
-            <motion.button
-              key={color}
-              whileHover={{ scale: 1.15, y: -4 }}
-              onClick={() => setCurrentColor(color)}
-              className={`w-8 md:w-10 h-8 md:h-10 rounded-full transition-all duration-200 ${
-                currentColor === color 
-                  ? 'ring-4 ring-[#af964b] shadow-lg' 
-                  : 'ring-2 ring-[#af964b]/30 hover:ring-[#af964b]/60'
-              }`}
-              style={{ backgroundColor: color }}
-              aria-label={`Select color ${color}`}
-            />
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Brush Size Slider - Responsive */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
-        className="w-full max-w-xs md:w-64 px-4 md:px-0"
-      >
-        <label className="block text-[#af964b] text-xs tracking-widest mb-2 md:mb-3 text-center">筆の太さ • Size: {brushSize}px</label>
-        <input
-          type="range"
-          min={MIN_BRUSH_SIZE}
-          max={MAX_BRUSH_SIZE}
-          value={brushSize}
-          onChange={(e) => setBrushSize(Number(e.target.value))}
-          className="w-full h-1 bg-[#af964b]/20 rounded-full appearance-none cursor-pointer accent-[#af964b] hover:accent-[#c9ad70]"
-        />
-      </motion.div>
-
-      {/* Settings Toggle - Responsive */}
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        onClick={() => setShowSettings(!showSettings)}
-        className="text-[#af964b] text-xs tracking-widest border border-[#af964b]/40 px-3 md:px-4 py-2 rounded-sm hover:border-[#af964b] transition-all"
-      >
-        {showSettings ? '設定を閉じる' : '詳細設定'}
-      </motion.button>
-
-      {/* Advanced Settings - Responsive */}
-      {showSettings && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-xs md:w-64 bg-[#2a2a2a]/50 border border-[#af964b]/30 rounded-sm p-4 md:p-6 space-y-4 mx-4 md:mx-0"
-        >
-          <div>
-            <label className="block text-[#af964b] text-xs tracking-widest mb-2">滑らかさ • Smoothness: {Math.round(smoothness * 100)}%</label>
-            <input
-              type="range"
-              min={0}
-              max={1}
-              step={0.1}
-              value={smoothness}
-              onChange={(e) => setSmoothness(Number(e.target.value))}
-              className="w-full h-1 bg-[#af964b]/20 rounded-full appearance-none cursor-pointer accent-[#af964b]"
-            />
-          </div>
-          <div>
-            <label className="block text-[#af964b] text-xs tracking-widest mb-2">透明度 • Opacity: {Math.round(opacity * 100)}%</label>
-            <input
-              type="range"
-              min={0}
-              max={1}
-              step={0.1}
-              value={opacity}
-              onChange={(e) => setOpacity(Number(e.target.value))}
-              className="w-full h-1 bg-[#af964b]/20 rounded-full appearance-none cursor-pointer accent-[#af964b]"
-            />
-          </div>
-        </motion.div>
-      )}
-
-      {/* Navigation Link - Responsive */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="mt-4 md:mt-8"
-      >
-        <Link
-          to="/gallery"
-          className="text-[#af964b] text-xs tracking-widest border border-[#af964b]/40 px-4 md:px-6 py-2 rounded-sm hover:border-[#af964b] transition-all hover:shadow-md inline-block"
-        >
-          蔵を見る • View Gallery
-        </Link>
-      </motion.div>
-
-      {/* Washi Dock */}
-      <WashiDock
-        onSave={handleSave}
-        onClear={handleClear}
-        onExport={handleExport}
-        onSettings={() => setShowSettings(!showSettings)}
-        isSaving={isSaving}
+    <motion.div
+      ref={canvasContainerRef}
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.6 }}
+      className="w-full h-full border-2 border-[#af964b]/30 bg-[#1a1a1a] shadow-2xl relative"
+      style={{ 
+        minHeight: 0, // Important for flex children
+        minWidth: 0,  // Important for flex children
+        isolation: 'isolate', // Create new stacking context
+        zIndex: 1, // Ensure canvas is interactive
+      }}
+    >
+      <Sketch
+        setup={wrappedSetup}
+        draw={draw}
+        windowResized={wrappedWindowResized}
+        mousePressed={mousePressed}
+        mouseDragged={mouseDragged}
+        mouseReleased={mouseReleased}
       />
-    </div>
+    </motion.div>
   );
 };
 

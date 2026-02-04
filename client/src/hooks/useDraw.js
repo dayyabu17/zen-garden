@@ -53,53 +53,39 @@ export const useDraw = () => {
     backgroundGenerated.current = true;
   };
 
-  // p5.js setup with responsive canvas
+  // p5.js setup - canvas is created by wrapper, just initialize background
   const setup = (p5, canvasParentRef) => {
-    const container = canvasParentRef;
-    const width = container.offsetWidth;
-    const height = Math.min(container.offsetWidth * 0.75, window.innerHeight * 0.7);
-    
-    const canvas = p5.createCanvas(width, height).parent(canvasParentRef);
+    // Canvas is already created by ZenCanvas wrapper
+    // Just initialize the background
     p5.background(...BG_COLOR);
     generatePaperGrain(p5);
-    
-    // Store canvas reference for resize handling
-    canvas.elt.style.maxWidth = '100%';
-    canvas.elt.style.height = 'auto';
   };
 
-  // Handle window resize for responsive canvas
+  // Handle window resize - canvas resize is handled by wrapper, just redraw content
   const windowResized = (p5) => {
     if (p5 && p5.drawingContext) {
-      const container = p5.canvas.parentElement;
-      const width = container.offsetWidth;
-      const height = Math.min(container.offsetWidth * 0.75, window.innerHeight * 0.7);
+      // Canvas is already resized by wrapper, just redraw
+      p5.background(...BG_COLOR);
+      generatePaperGrain(p5);
       
-      // Only resize if dimensions have actually changed
-      if (p5.width !== width || p5.height !== height) {
-        p5.resizeCanvas(width, height);
-        p5.background(...BG_COLOR);
-        generatePaperGrain(p5);
+      // Redraw all paths
+      paths.forEach((path) => {
+        const color = p5.color(path.color);
+        const pathOpacity = path.opacity !== undefined ? path.opacity : INK_OPACITY;
+        color.setAlpha(pathOpacity * 255);
+        p5.noFill();
         
-        // Redraw all paths with new dimensions
-        paths.forEach((path) => {
-          const color = p5.color(path.color);
-          const pathOpacity = path.opacity !== undefined ? path.opacity : INK_OPACITY;
-          color.setAlpha(pathOpacity * 255);
-          p5.noFill();
+        for (let i = 0; i < path.points.length - 1; i++) {
+          const point = path.points[i];
+          const nextPoint = path.points[i + 1];
+          const weight = point.weight !== undefined ? point.weight : path.brushSize;
           
-          for (let i = 0; i < path.points.length - 1; i++) {
-            const point = path.points[i];
-            const nextPoint = path.points[i + 1];
-            const weight = point.weight !== undefined ? point.weight : path.brushSize;
-            
-            p5.stroke(color);
-            p5.strokeWeight(weight);
-            p5.strokeCap(p5.ROUND);
-            p5.line(point.x, point.y, nextPoint.x, nextPoint.y);
-          }
-        });
-      }
+          p5.stroke(color);
+          p5.strokeWeight(weight);
+          p5.strokeCap(p5.ROUND);
+          p5.line(point.x, point.y, nextPoint.x, nextPoint.y);
+        }
+      });
     }
   };
 

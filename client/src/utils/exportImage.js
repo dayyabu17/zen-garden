@@ -69,3 +69,43 @@ export const downloadCanvasWithOptions = (p5, options = {}) => {
     link.click();
   }
 };
+
+/**
+ * Export a static canvas (from ArtScroll component) as JPG
+ * @param {HTMLCanvasElement} canvas - The canvas element
+ * @param {string} title - Artwork title for filename
+ * @param {number} quality - JPEG quality (0-1), default 0.9
+ */
+export const exportScrollAsJPG = (canvas, title = 'artwork', quality = 0.9) => {
+  if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
+    console.error('Valid canvas element is required');
+    return;
+  }
+
+  try {
+    // Convert canvas to JPEG data URL
+    const dataURL = canvas.toDataURL('image/jpeg', quality);
+    
+    // Sanitize filename
+    const sanitizedTitle = title
+      .replace(/[^a-z0-9]/gi, '-')
+      .toLowerCase()
+      .substring(0, 50);
+    
+    const timestamp = new Date().getTime();
+    const filename = `${sanitizedTitle}-${timestamp}.jpg`;
+    
+    // Create and trigger download
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = dataURL;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    console.log(`✅ Exported: ${filename}`);
+  } catch (error) {
+    console.error('Failed to export canvas as JPG:', error);
+    alert('Failed to export artwork. Please try again.');
+  }
+};
