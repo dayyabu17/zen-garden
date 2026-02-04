@@ -6,6 +6,7 @@ export const ArtContext = createContext();
 export const ArtProvider = ({ children }) => {
   const [artworks, setArtworks] = useState([]);
   const [selectedArtwork, setSelectedArtwork] = useState(null);
+  const [activeArtwork, setActiveArtwork] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -44,10 +45,19 @@ export const ArtProvider = ({ children }) => {
     }
   }, []);
 
+  /**
+   * Set the active artwork for replay/edit mode
+   * @param {Object|null} artwork - The artwork to activate, or null to clear
+   */
+  const setActiveArt = useCallback((artwork) => {
+    setActiveArtwork(artwork);
+  }, []);
+
   const value = {
     // State
     artworks,
     selectedArtwork,
+    activeArtwork,
     isLoading,
     error,
     
@@ -55,6 +65,7 @@ export const ArtProvider = ({ children }) => {
     fetchArtworks,
     createArtwork,
     setSelectedArtwork,
+    setActiveArt,
   };
 
   return (
