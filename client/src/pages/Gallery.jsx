@@ -10,21 +10,22 @@ const Gallery = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900">
       {/* Header - Scroll-like styling */}
-      <header className="py-12 px-6 border-b border-amber-500/20 backdrop-blur-sm sticky top-0 z-10 bg-gray-900/50">
+      <header className="py-8 md:py-12 px-4 md:px-6 border-b border-amber-500/20 backdrop-blur-sm sticky top-0 z-10 bg-gray-900/50">
         <div className="max-w-5xl mx-auto">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div>
-              <h1 className="text-5xl font-light text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-100 tracking-widest" style={{ fontFamily: 'serif' }}>
+              <h1 className="text-4xl md:text-5xl font-light text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-100 tracking-widest mb-2" style={{ fontFamily: 'serif' }}>
                 蔵
               </h1>
-              <p className="text-amber-200/60 mt-2 text-sm tracking-widest">Collection of Zen Flows</p>
+              <p className="text-amber-200/60 text-xs md:text-sm tracking-widest font-light text-center md:text-left">Collection of Zen Flows</p>
             </div>
             <Link
               to="/"
-              className="flex items-center gap-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-semibold py-3 px-6 rounded-sm transition-all duration-200 hover:shadow-lg border border-amber-500/30"
+              className="flex items-center gap-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-semibold py-2 md:py-3 px-4 md:px-6 rounded-sm transition-all duration-200 hover:shadow-lg border border-amber-500/30 text-sm md:text-base"
             >
-              <ArrowLeft size={20} />
-              Back to Canvas
+              <ArrowLeft size={16} className="md:w-5 md:h-5" />
+              <span className="hidden md:inline">Back to Canvas</span>
+              <span className="md:hidden">戻る</span>
             </Link>
           </div>
         </div>
@@ -66,9 +67,9 @@ const Gallery = () => {
           </div>
         )}
 
-        {/* Gallery Grid - Kakemono (Hanging Scroll) Layout */}
+      {/* Gallery Grid - Kakemono (Hanging Scroll) Layout - Responsive */}
         {!isLoading && !error && artworks.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-8 py-12">
+          <div className="flex flex-wrap justify-center gap-6 md:gap-8 py-12 px-4">
             {artworks.map((artwork, index) => (
               <motion.div
                 key={artwork._id}

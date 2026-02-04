@@ -53,11 +53,54 @@ export const useDraw = () => {
     backgroundGenerated.current = true;
   };
 
-  // p5.js setup
+  // p5.js setup with responsive canvas
   const setup = (p5, canvasParentRef) => {
-    p5.createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT).parent(canvasParentRef);
+    const container = canvasParentRef;
+    const width = container.offsetWidth;
+    const height = Math.min(container.offsetWidth * 0.75, window.innerHeight * 0.7);
+    
+    const canvas = p5.createCanvas(width, height).parent(canvasParentRef);
     p5.background(...BG_COLOR);
     generatePaperGrain(p5);
+    
+    // Store canvas reference for resize handling
+    canvas.elt.style.maxWidth = '100%';
+    canvas.elt.style.height = 'auto';
+  };
+
+  // Handle window resize for responsive canvas
+  const windowResized = (p5) => {
+    if (p5 && p5.drawingContext) {
+      const container = p5.canvas.parentElement;
+      const width = container.offsetWidth;
+      const height = Math.min(container.offsetWidth * 0.75, window.innerHeight * 0.7);
+      
+      // Only resize if dimensions have actually changed
+      if (p5.width !== width || p5.height !== height) {
+        p5.resizeCanvas(width, height);
+        p5.background(...BG_COLOR);
+        generatePaperGrain(p5);
+        
+        // Redraw all paths with new dimensions
+        paths.forEach((path) => {
+          const color = p5.color(path.color);
+          const pathOpacity = path.opacity !== undefined ? path.opacity : INK_OPACITY;
+          color.setAlpha(pathOpacity * 255);
+          p5.noFill();
+          
+          for (let i = 0; i < path.points.length - 1; i++) {
+            const point = path.points[i];
+            const nextPoint = path.points[i + 1];
+            const weight = point.weight !== undefined ? point.weight : path.brushSize;
+            
+            p5.stroke(color);
+            p5.strokeWeight(weight);
+            p5.strokeCap(p5.ROUND);
+            p5.line(point.x, point.y, nextPoint.x, nextPoint.y);
+          }
+        });
+      }
+    }
   };
 
   // p5.js draw loop with Sumi-e rendering
@@ -241,6 +284,7 @@ export const useDraw = () => {
     // p5 handlers
     setup,
     draw,
+    windowResized,
     mousePressed,
     mouseDragged,
     mouseReleased,
